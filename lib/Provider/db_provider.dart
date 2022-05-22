@@ -46,12 +46,25 @@ class DBProvider {
     }
   }
 
-  void addMarker(MarkerMap value) async {
+  Future<int> addMarker(MarkerMap value) async {
     try {
       final db = await database;
       final res = await db.insert('Markers', value.toMap());
+      return res;
     } catch (e) {
       debugPrint('ADD MARKER: $e');
+      return -1;
+    }
+  }
+
+  void removeMarker(int id) async {
+    try {
+      final db = await database;
+      final res = await db.delete('Markers',
+          where: 'Id = ?',
+          whereArgs: [id]);
+    } catch (e) {
+      debugPrint('REMOVE MARKER: $e');
     }
   }
 }

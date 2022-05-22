@@ -6,10 +6,11 @@ import 'package:open_maps/Provider/db_provider.dart';
 
 class MarkerProvider with ChangeNotifier {
   List<MarkerMap> markerList = [];
+  final MapController controller = MapController();
 
   void getAllMarkers() async {
-    debugPrint('GOT MARKERS FROM DB');
     markerList = await DBProvider.db.getMarkers();
+    debugPrint('GOT MARKERS FROM DB ${markerList.length}');
     notifyListeners();
   }
 
@@ -30,13 +31,33 @@ class MarkerProvider with ChangeNotifier {
         .toList();
   }
 
-  void addMarker(MarkerMap marker){
+  void addMarker(MarkerMap marker) async {
+    int markerId = await DBProvider.db.addMarker(marker);
+    marker.id = markerId;
     markerList.add(marker);
-    DBProvider.db.addMarker(marker);
     notifyListeners();
   }
 
-  MarkerMap getMarker(LatLng point){
-    return markerList.firstWhere((e) => e.latitude == point.latitude && e.longitude == point.longitude);
+  Future<List<MarkerMap>> getMarkerList() async {
+    return markerList;
+  }
+
+  MarkerMap getMarker(LatLng point) {
+    return markerList.firstWhere(
+        (e) => e.latitude == point.latitude && e.longitude == point.longitude);
+  }
+
+  void moveMap(LatLng value){
+    controller.move(value, 12);
+  }
+
+  void removeMarker(MarkerMap value){
+    markerList.remove(value);
+    DBProvider.db.removeMarker(value.id!);
+    notifyListeners();
+  }
+
+  Future<List<MarkerMap>> getMarkerSearch(String query) async{
+    return markerList.where((m) => m.title.contains(query)).toList();
   }
 }

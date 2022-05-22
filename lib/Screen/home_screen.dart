@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_maps/Screen/screens.dart';
+import 'package:open_maps/Widget/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 
@@ -35,6 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('OpenStreetMap'),
         backgroundColor: Colors.indigo,
+        actions: [
+          IconButton(
+              onPressed: () => showSearch(context: context, delegate: MapSearchDelegate()),
+              icon: const Icon(Icons.search)
+          )
+        ],
       ),
       body: FutureBuilder(
         future: mProvider.getMarkers(),
@@ -42,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Stack(
             children: [
               FlutterMap(
+                mapController: mProvider.controller,
                 options: MapOptions(
                     plugins: [MarkerClusterPlugin()],
                     center: LatLng(40.463667, -3.74922),
