@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
 import 'package:open_maps/Model/models.dart';
 import 'package:open_maps/Provider/db_provider.dart';
 
@@ -22,10 +23,10 @@ class MarkerProvider with ChangeNotifier {
               height: 60,
               anchorPos: AnchorPos.align(AnchorAlign.center),
               rotate: false,
-              builder: (context) => const Icon(
+              builder: (context) => Icon(
                 Icons.location_pin,
-                color: Colors.black,
-                size: 60,
+                color: marker.id == -1 ? Colors.red : Colors.black,
+                size: 40,
               ),
             ))
         .toList();
@@ -47,11 +48,11 @@ class MarkerProvider with ChangeNotifier {
         (e) => e.latitude == point.latitude && e.longitude == point.longitude);
   }
 
-  void moveMap(LatLng value){
+  void moveMap(LatLng value) {
     controller.move(value, 10);
   }
 
-  void removeMarker(MarkerMap value){
+  void removeMarker(MarkerMap value) {
     markerList.remove(value);
     DBProvider.db.removeMarker(value.id!);
     notifyListeners();
@@ -59,5 +60,21 @@ class MarkerProvider with ChangeNotifier {
 
   Future<List<MarkerMap>> getMarkerSearch(String query) async {
     return markerList.where((m) => m.title.contains(query)).toList();
+  }
+
+  void setCurrentLocation(LocationData? value) {
+    deleteCurrentLocation();
+    value != null ? markerList.add(MarkerMap(
+        id: -1,
+        title: 'Mi ubicación',
+        description: 'Estoy aqui!',
+        latitude: value.latitude!,
+        longitude: value.longitude!)) : "";
+    notifyListeners();
+  }
+
+  void deleteCurrentLocation() {
+    markerList.removeWhere((m) => m.id == -1);
+    notifyListeners();
   }
 }

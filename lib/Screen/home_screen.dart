@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart';
 import 'package:open_maps/Screen/screens.dart';
 import 'package:open_maps/Widget/widgets.dart';
 import 'package:provider/provider.dart';
@@ -25,11 +27,63 @@ class _HomeScreenState extends State<HomeScreen> {
           Provider.of<MarkerProvider>(context, listen: false);
       mProvider.getAllMarkers();
     });
+    initLocationService();
+  }
+
+  LocationData? _currentLocation;
+  bool _liveUpdate = false;
+  bool _isActive = false;
+  bool _permission = false;
+  final Location _locationService = Location();
+
+  void initLocationService() async {
+    await _locationService.changeSettings(
+      accuracy: LocationAccuracy.high,
+      interval: 1000,
+    );
+
+    LocationData? location;
+    bool serviceEnabled;
+    bool serviceRequestResult;
+
+    try {
+      serviceEnabled = await _locationService.serviceEnabled();
+
+      if (serviceEnabled) {
+        var permission = await _locationService.requestPermission();
+        _permission = permission == PermissionStatus.granted;
+
+        if (_permission) {
+          location = await _locationService.getLocation();
+          _currentLocation = location;
+          _locationService.onLocationChanged
+              .listen((LocationData result) async {
+            if (mounted) {
+              setState(() {
+                _currentLocation = result;
+              });
+            }
+          });
+        }
+      } else {
+        serviceRequestResult = await _locationService.requestService();
+        if (serviceRequestResult) {
+          initLocationService();
+          return;
+        }
+      }
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      location = null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    MarkerProvider mProvider = Provider.of<MarkerProvider>(context);
+    MarkerProvider mProvider =
+        Provider.of<MarkerProvider>(context, listen: true);
+    GeolocationProvider gProvider =
+        Provider.of<GeolocationProvider>(context, listen: true);
 
     final PopupController popupController = PopupController();
     return Scaffold(
@@ -38,9 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.indigo,
         actions: [
           IconButton(
-              onPressed: () => showSearch(context: context, delegate: MapSearchDelegate()),
-              icon: const Icon(Icons.search)
-          )
+              onPressed: () =>
+                  showSearch(context: context, delegate: MapSearchDelegate()),
+              icon: const Icon(Icons.search))
         ],
       ),
       body: FutureBuilder(
@@ -54,13 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     plugins: [MarkerClusterPlugin()],
                     center: LatLng(40.463667, -3.74922),
                     maxZoom: 18,
+                    minZoom: 2,
                     zoom: 4,
                     onLongPress: (_, LatLng latlng) {
                       Navigator.of(context)
                           .pushNamed(DetailsScreen.route, arguments: latlng);
                     },
-                    onTap: (_, __)  => popupController.hideAllPopups()
-                ),
+                    onTap: (_, __) => popupController.hideAllPopups()),
                 layers: [
                   TileLayerOptions(
                       urlTemplate:
@@ -87,8 +141,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           popupBuilder: (_, marker) => Container(
                                 decoration: const BoxDecoration(
                                     color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(20))
-                                ),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20))),
                                 width: 200,
                                 height: 100,
                                 child: GestureDetector(
@@ -104,8 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       builder: (context, markers) => Container(
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20.0),
-                                color: Colors.indigo
-                            ),
+                                color: Colors.indigo),
                             child: Center(
                               child: Text(
                                 markers.length.toString(),
@@ -116,8 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               FloatingActionButton(
-                onPressed: () {},
-                child: const Icon(Icons.location_off),
+                onPressed: () {
+                  setState(() {
+                    _isActive = !_isActive;
+                  });
+                },
+                child: Icon(gProvider.isActive
+                    ? Icons.location_on
+                    : Icons.location_off),
               )
             ],
           );

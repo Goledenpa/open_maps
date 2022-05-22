@@ -24,70 +24,72 @@ class DetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Añadir marcador"),
       ),
-      body: Form(
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        key: fProvider.key,
-        child: Column(
-          children: [
-            getTextFormField(fProvider.title, 'Título', 'Es necesario dar un título', true),
-            getTextFormField(fProvider.description, 'Descripción','Es necesario dar una descripción', true),
-            Row(
-              children: [
-                Expanded(
+      body: SingleChildScrollView(
+        child: Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          key: fProvider.key,
+          child: Column(
+            children: [
+              getTextFormField(fProvider.title, 'Título', 'Es necesario dar un título', true),
+              getTextFormField(fProvider.description, 'Descripción','Es necesario dar una descripción', true),
+              Row(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: getTextFormField(fProvider.latitude, 'Latitud', null, false)),
+                  Expanded(
                     flex: 1,
-                    child: getTextFormField(fProvider.latitude, 'Latitud', null, false)),
-                Expanded(
-                  flex: 1,
-                  child: getTextFormField(fProvider.longitude, 'Longitud', null, false),
-                )
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                    flex: 1,
-                    child: Container(
-                      margin: const EdgeInsets.all(10),
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                        ),
-                        child: const Text("Añadir",
-                            style: TextStyle(color: Colors.white)),
-                        onPressed: () {
-                          if (fProvider.key.currentState!.validate()) {
-                            mProvider.addMarker(
-                              MarkerMap(
-                                title: fProvider.title.value!,
-                                description: fProvider.description.value!,
-                                latitude: double.tryParse(fProvider.latitude.value!)!,
-                                longitude: double.tryParse(fProvider.longitude.value!)!
-                              )
-                            );
-                            fProvider.clear();
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                    )),
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                      margin: const EdgeInsets.all(10),
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          "Cancelar",
-                          style: TextStyle(color: Colors.white),
+                    child: getTextFormField(fProvider.longitude, 'Longitud', null, false),
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: Container(
+                        margin: const EdgeInsets.all(10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.indigo,
+                          ),
+                          child: const Text("Añadir",
+                              style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            if (fProvider.key.currentState!.validate()) {
+                              mProvider.addMarker(
+                                MarkerMap(
+                                  title: fProvider.title.value!,
+                                  description: fProvider.description.value!,
+                                  latitude: double.tryParse(fProvider.latitude.value!)!,
+                                  longitude: double.tryParse(fProvider.longitude.value!)!
+                                )
+                              );
+                              fProvider.clear();
+                              Navigator.of(context).pop();
+                            }
+                          },
                         ),
                       )),
-                )
-              ],
-            )
-          ],
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                        margin: const EdgeInsets.all(10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.grey,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text(
+                            "Cancelar",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )),
+                  )
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
