@@ -30,7 +30,7 @@ class MapSearchDelegate extends SearchDelegate {
     MarkerProvider mProvider =
         Provider.of<MarkerProvider>(context, listen: true);
     return FutureBuilder(
-      future: mProvider.getMarkerList(),
+      future: mProvider.getMarkerSearch(query),
       builder: (context, AsyncSnapshot<List<MarkerMap>> snapshot) {
         if (!snapshot.hasData) {
           return Column(
@@ -43,7 +43,10 @@ class MapSearchDelegate extends SearchDelegate {
             ],
           );
         } else if (snapshot.data!.isEmpty) {
-          return const Text("No se han encontrado resultados");
+          return const Center(
+              child: Text("No se han encontrado resultados",
+                        style: TextStyle(fontSize: 18),
+          ));
         } else {
           return ListView.builder(
             itemCount: snapshot.data!.length,

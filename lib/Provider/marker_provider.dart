@@ -48,7 +48,7 @@ class MarkerProvider with ChangeNotifier {
   }
 
   void moveMap(LatLng value){
-    controller.move(value, 12);
+    controller.move(value, 10);
   }
 
   void removeMarker(MarkerMap value){
@@ -57,7 +57,7 @@ class MarkerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<MarkerMap>> getMarkerSearch(String query) async{
+  Future<List<MarkerMap>> getMarkerSearch(String query) async {
     return markerList.where((m) => m.title.contains(query)).toList();
   }
 }
