@@ -15,8 +15,10 @@ class MarkerProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Marker>> getMarkers() async {
+  Future<List<Marker>> getMarkers(LocationData? currentLocation, bool showGeolocation) async {
+    setCurrentLocation(currentLocation, showGeolocation);
     return markerList
+        .where((m) => m.visible == true)
         .map((marker) => Marker(
               point: LatLng(marker.latitude, marker.longitude),
               width: 60,
@@ -59,22 +61,23 @@ class MarkerProvider with ChangeNotifier {
   }
 
   Future<List<MarkerMap>> getMarkerSearch(String query) async {
-    return markerList.where((m) => m.title.contains(query)).toList();
+    return markerList.where((m) => m.title.contains(query) && m.visible).toList();
   }
 
-  void setCurrentLocation(LocationData? value) {
+  void setCurrentLocation(LocationData? value, bool visible) {
     deleteCurrentLocation();
-    value != null ? markerList.add(MarkerMap(
-        id: -1,
-        title: 'Mi ubicación',
-        description: 'Estoy aqui!',
-        latitude: value.latitude!,
-        longitude: value.longitude!)) : "";
-    notifyListeners();
+    value != null
+        ? markerList.add(MarkerMap(
+            id: -1,
+            title: 'Mi ubicación',
+            description: 'Estoy aqui!',
+            latitude: value.latitude!,
+            longitude: value.longitude!,
+            visible: visible))
+        : "";
   }
 
   void deleteCurrentLocation() {
     markerList.removeWhere((m) => m.id == -1);
-    notifyListeners();
   }
 }

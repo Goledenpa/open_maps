@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
 import 'package:open_maps/Screen/screens.dart';
 import 'package:open_maps/Widget/widgets.dart';
 import 'package:provider/provider.dart';
@@ -26,62 +24,16 @@ class _HomeScreenState extends State<HomeScreen> {
       MarkerProvider mProvider =
           Provider.of<MarkerProvider>(context, listen: false);
       mProvider.getAllMarkers();
+      Provider.of<GeolocationProvider>(context, listen: false)
+          .startLocationService(mProvider.controller);
     });
-    initLocationService();
-  }
-
-  LocationData? _currentLocation;
-  bool _liveUpdate = false;
-  bool _isActive = false;
-  bool _permission = false;
-  final Location _locationService = Location();
-
-  void initLocationService() async {
-    await _locationService.changeSettings(
-      accuracy: LocationAccuracy.high,
-      interval: 1000,
-    );
-
-    LocationData? location;
-    bool serviceEnabled;
-    bool serviceRequestResult;
-
-    try {
-      serviceEnabled = await _locationService.serviceEnabled();
-
-      if (serviceEnabled) {
-        var permission = await _locationService.requestPermission();
-        _permission = permission == PermissionStatus.granted;
-
-        if (_permission) {
-          location = await _locationService.getLocation();
-          _currentLocation = location;
-          _locationService.onLocationChanged
-              .listen((LocationData result) async {
-            if (mounted) {
-              setState(() {
-                _currentLocation = result;
-              });
-            }
-          });
-        }
-      } else {
-        serviceRequestResult = await _locationService.requestService();
-        if (serviceRequestResult) {
-          initLocationService();
-          return;
-        }
-      }
-    } on PlatformException catch (e) {
-      debugPrint(e.toString());
-      location = null;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     MarkerProvider mProvider =
         Provider.of<MarkerProvider>(context, listen: true);
+
     GeolocationProvider gProvider =
         Provider.of<GeolocationProvider>(context, listen: true);
 
@@ -98,13 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: FutureBuilder(
-        future: mProvider.getMarkers(),
+        future:
+            mProvider.getMarkers(gProvider.currentLocation, gProvider.isActive),
         builder: (context, AsyncSnapshot markerList) {
           return Stack(
             children: [
               FlutterMap(
                 mapController: mProvider.controller,
                 options: MapOptions(
+                    interactiveFlags: gProvider.interactiveFlags,
                     plugins: [MarkerClusterPlugin()],
                     center: LatLng(40.463667, -3.74922),
                     maxZoom: 18,
@@ -168,16 +122,50 @@ class _HomeScreenState extends State<HomeScreen> {
                           ))
                 ],
               ),
-              FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    _isActive = !_isActive;
-                  });
-                },
-                child: Icon(gProvider.isActive
-                    ? Icons.location_on
-                    : Icons.location_off),
-              )
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FloatingActionButton(
+                      heroTag: 'Location',
+                      onPressed: () {
+                        setState(() {
+                          gProvider.isActive = !gProvider.isActive;
+
+                          if (!gProvider.isActive) {
+                            gProvider.liveUpdate = false;
+                            gProvider.interactiveFlags = InteractiveFlag.all;
+                          }
+                        });
+                      },
+                      child: Icon(gProvider.isActive
+                          ? Icons.location_on
+                          : Icons.location_off),
+                    ),
+                  ),
+                  FloatingActionButton(
+                    heroTag: 'LiveUpdate',
+                    onPressed: () {
+                      if (gProvider.isActive) {
+                        setState(() {
+                          gProvider.liveUpdate = !gProvider.liveUpdate;
+                          if (gProvider.liveUpdate) {
+                            gProvider.interactiveFlags =
+                                InteractiveFlag.doubleTapZoom |
+                                    InteractiveFlag.pinchZoom |
+                                    InteractiveFlag.rotate;
+                          } else {
+                            gProvider.interactiveFlags = InteractiveFlag.all;
+                          }
+                        });
+                      }
+                    },
+                    child: Icon(gProvider.liveUpdate
+                        ? Icons.my_location
+                        : Icons.location_disabled),
+                  )
+                ],
+              ),
             ],
           );
         },

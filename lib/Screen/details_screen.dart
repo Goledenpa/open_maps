@@ -14,7 +14,6 @@ class DetailsScreen extends StatelessWidget {
     FormProvider fProvider = Provider.of<FormProvider>(context, listen: true);
     MarkerProvider mProvider = Provider.of<MarkerProvider>(context, listen: false);
 
-
     LatLng latlng = ModalRoute.of(context)?.settings.arguments as LatLng;
 
     fProvider.latitude.value = latlng.latitude.toStringAsFixed(4);
@@ -62,7 +61,8 @@ class DetailsScreen extends StatelessWidget {
                                   title: fProvider.title.value!,
                                   description: fProvider.description.value!,
                                   latitude: double.tryParse(fProvider.latitude.value!)!,
-                                  longitude: double.tryParse(fProvider.longitude.value!)!
+                                  longitude: double.tryParse(fProvider.longitude.value!)!,
+                                  visible: true
                                 )
                               );
                               fProvider.clear();

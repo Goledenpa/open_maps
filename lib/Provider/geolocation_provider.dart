@@ -2,18 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
-import 'package:open_maps/Provider/providers.dart';
-import 'package:provider/provider.dart';
 
 class GeolocationProvider with ChangeNotifier {
-  LocationData? currentLocation;
-  bool _liveUpdate = false;
+  LocationData? _currentLocation;
   bool _perms = false;
   final Location _locationService = Location();
-  final interactiveFlags = InteractiveFlag.all;
-  bool isActive = false;
+  var interactiveFlags = InteractiveFlag.all;
+  bool isActive = true;
+  bool liveUpdate = false;
 
-  get liveUpdate => _liveUpdate;
+  LocationData? get currentLocation => _currentLocation;
 
   void stopLocationService() {
     debugPrint('Servicio de geolocalización "parado"');
@@ -22,7 +20,7 @@ class GeolocationProvider with ChangeNotifier {
   void startLocationService(MapController controller) async {
     await _locationService.changeSettings(
       accuracy: LocationAccuracy.high,
-      interval: 1000,
+      interval: 100,
     );
 
     LocationData? location;
@@ -37,17 +35,16 @@ class GeolocationProvider with ChangeNotifier {
         _perms = permission == PermissionStatus.granted;
 
         if (_perms) {
+          isActive = true;
           location = await _locationService.getLocation();
-          currentLocation = location;
+          _currentLocation = location;
           recargar();
           _locationService.onLocationChanged
               .listen((LocationData result) async {
-                currentLocation =
-            if (_liveUpdate) {
+            _currentLocation = result;
+            if (liveUpdate) {
               controller.move(
-                  LatLng(result.latitude!,
-                      result.longitude!),
-                  controller.zoom);
+                  LatLng(result.latitude!, result.longitude!), controller.zoom);
             }
             recargar();
           });
@@ -56,6 +53,7 @@ class GeolocationProvider with ChangeNotifier {
         serviceRequestResult = await _locationService.requestService();
         if (serviceRequestResult) {
           startLocationService(controller);
+          isActive = false;
           return;
         }
       }
