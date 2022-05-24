@@ -12,9 +12,13 @@ class DetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     FormProvider fProvider = Provider.of<FormProvider>(context, listen: true);
-    MarkerProvider mProvider = Provider.of<MarkerProvider>(context, listen: false);
+    MarkerProvider mProvider = Provider.of<MarkerProvider>(
+        context, listen: false);
 
-    LatLng latlng = ModalRoute.of(context)?.settings.arguments as LatLng;
+    LatLng latlng = ModalRoute
+        .of(context)
+        ?.settings
+        .arguments as LatLng;
 
     fProvider.latitude.value = latlng.latitude.toStringAsFixed(4);
     fProvider.longitude.value = latlng.longitude.toStringAsFixed(4);
@@ -29,16 +33,21 @@ class DetailsScreen extends StatelessWidget {
           key: fProvider.key,
           child: Column(
             children: [
-              getTextFormField(fProvider.title, 'Título', 'Es necesario dar un título', true),
-              getTextFormField(fProvider.description, 'Descripción','Es necesario dar una descripción', true),
+              getTextFormField(
+                  fProvider.title, 'Título', 'Es necesario dar un título',
+                  true),
+              getTextFormField(fProvider.description, 'Descripción',
+                  'Es necesario dar una descripción', true),
               Row(
                 children: [
                   Expanded(
                       flex: 1,
-                      child: getTextFormField(fProvider.latitude, 'Latitud', null, false)),
+                      child: getTextFormField(
+                          fProvider.latitude, 'Latitud', null, false)),
                   Expanded(
                     flex: 1,
-                    child: getTextFormField(fProvider.longitude, 'Longitud', null, false),
+                    child: getTextFormField(
+                        fProvider.longitude, 'Longitud', null, false),
                   )
                 ],
               ),
@@ -57,13 +66,15 @@ class DetailsScreen extends StatelessWidget {
                           onPressed: () {
                             if (fProvider.key.currentState!.validate()) {
                               mProvider.addMarker(
-                                MarkerMap(
-                                  title: fProvider.title.value!,
-                                  description: fProvider.description.value!,
-                                  latitude: double.tryParse(fProvider.latitude.value!)!,
-                                  longitude: double.tryParse(fProvider.longitude.value!)!,
-                                  visible: true
-                                )
+                                  MarkerMap(
+                                      title: fProvider.title.value!,
+                                      description: fProvider.description.value!,
+                                      latitude: double.tryParse(
+                                          fProvider.latitude.value!)!,
+                                      longitude: double.tryParse(
+                                          fProvider.longitude.value!)!,
+                                      visible: true
+                                  )
                               );
                               fProvider.clear();
                               Navigator.of(context).pop();
@@ -79,7 +90,10 @@ class DetailsScreen extends StatelessWidget {
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.grey,
                           ),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () {
+                            fProvider.clear();
+                            Navigator.of(context).pop();
+                          },
                           child: const Text(
                             "Cancelar",
                             style: TextStyle(color: Colors.white),
@@ -95,7 +109,8 @@ class DetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget getTextFormField(Property value, String labelText, String? errorText, bool enabled) {
+  Widget getTextFormField(Property value, String labelText, String? errorText,
+      bool enabled) {
     return Container(
       margin: const EdgeInsets.all(10),
       child: TextFormField(
